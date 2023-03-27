@@ -1,0 +1,117 @@
+Programs are usually built for the purpose of simulating real world events
+City traffic, the weather, stock market, etc.
+
+Predator-prey simulations (foxes and rabbits)
+A lot of prey means a lot of food
+A lot of food encourages higher predator numbers
+More predators eat more prey
+Less prey means less food
+Less food means...
+
+Fox:
+Simple model of a type of predator
+
+Rabbit:
+Simple model of a type of prey
+
+Simulator:
+Manages the overall simulation task
+Holds a connection of foxes and rabbits
+
+Field:
+Represents a 2D field
+
+Location:
+Represents a 2D position
+
+SimulatorView, FieldStats, Counter
+Maintain stats and present a view of the field
+
+During each step:
+Steps do not correspond to real time
+Simulation step carries out the action that characterize fox and rabbit
+behavior
+The state of the simulation is updated
+Corresponding changes are displayed on the screen
+
+Animal Behavior
+
+Rabbit Simplification examples:
+Rabbits do not have different genders, in effect all are female
+The same rabbit could breed at every step
+All rabbits die at the same age
+No two animals are in the same location
+
+Fox Simplification examples:
+Similar simplification to rabbits
+Hunting and eating could be modeled in different ways:
+	Should food level be additive?
+	Is a hungry fox more or less likely to hunt?
+
+Rabbit behavior:
+Managed from the run method
+Age incremented at each simulation 'step'
+	A rabbit could die at this point
+Rabbits that are old enough might breed at each stage
+	New rabbits could be born at this point
+Rabbits can die either because of:
+	Old age
+	Overpopulation: No place to move during a run
+
+Fox behavior:
+Managed from the hunt method
+Foxes also age and breed
+They become hungry
+They hunt for food in adjacent locations
+
+The simulator class:
+Setup in the constructor
+The populate method
+	Each animal is given a random starting age
+
+The simulateOneStep method:
+Iterates over separate populations of foxes and
+rabbits
+"Run" all the rabbits in the field
+"Hunt" all the foxes in the field
+Add newborn rabbits and foxes to the lists
+Update GUI with new information
+
+Fox and Rabbit have strong similarities
+but do not have a common superclass
+
+The update step involves similar 
+looking code
+
+The simulator is tightly coupled to specific classes
+It "knows" a lot about the behavior of foxes and rabbits
+
+Place common fields in Animal superclass
+	age, alive, field, location
+Place corresponding accessors and mutators in class Animal
+	getLocation, setLocation...
+	May need to change access modifiers for moved methods
+Method renaming to support information hiding:
+	"Acting" methods specific to individual animals
+	get a common name
+	Run and hunt become act
+Simulator can now be significantly decoupled
+
+The act method of animal
+Static type checking requires an act method in Animal
+An act method for foxes and rabbits is different
+There is no obvious shared implementation
+
+Leave method act in Animal empty or define it as abstract:
+abstract public void act(List<Animals> newAnimals);
+
+The Animal class:
+public abstract class Animal
+{
+	/**
+	*Make this animal act - that is: make it do
+	*whatever it wants/needs to do/
+	*/
+	abstract public void act(List<Animal> newAnimals);
+}
+

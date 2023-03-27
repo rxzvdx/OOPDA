@@ -1,0 +1,477 @@
+An interface is a mechanism for spelling out a contract betweeen
+two parties. the supplier of a service and the classes that want
+their objects to be usable with the service. 
+
+"force certain behaviors for a group of classes"
+public interface Enrollable 
+{
+	public void add(Student student);
+	public void drop(Student student);
+}
+
+Notice that these methods are headers only; there is no method
+body.
+We call such methods abstract.
+
+You could implement an interface:
+public class Section implements Enrollable 
+{
+	
+}
+
+An interface can provide a default implementation of a method.
+public interface Enrollable {
+   public default void add(Student student) {
+      logger.log(Level.INFO, student.getName() + " enrolled in " + this);
+      EnrollmentManager.enroll(this, student);
+   }
+
+Now the method add() has a body.  We could also add the method code to 
+drop().  We call such methods concrete.
+
+*In UML, abstract methods are in italics
+
+If a class implements an 
+Interface and does not 
+like a default 
+implementation, that 
+class can override the 
+method.
+
+public class Section implements Enrollable {
+   @Override
+   public void add(Student student) {
+      // You don't HAVE to use the default method body
+      // You can add your own code here
+      ...
+   }
+
+
+The method signature is comprised of:
+ The method name
+ The method parameters including data types and order
+
+To override a method, the replacement method must have the same method 
+signature and the return type must be "covariant".  
+ Covariant means that the return type must be of the same type or 
+of a more specific type.  
+(More on this later.)
+
+By contrast, method overloading is when there are multiple versions 
+with the same name but different parameters. 
+(A different method signature)
+ Overloading by Type  (parameter list has different types)
+ Overloading by Arity  (parameter list has different number of 
+parameters)
+
+Sometimes you like the default implementation, but you want to add a 
+little extra
+
+You can still call the default method from the interface even if you
+have overridden it.
+
+@Override
+public void add(Student student) {
+   Enrollable.super.add(student);  // You can call the default method!
+   EnrollmentManager.emailSpeaker(this, student); // and add extra code
+}
+
+*The @Override message is optional, but it helps 
+the compiler, ensures the method is actually 
+overriding another, and makes your code more 
+readable*
+
+Syntax
+ First specify the interface         Enrollable   
+ Next use the keyword super     Enrollable.super   
+ Then call the method                Enrollable.super.add()  
+
+You have to specify the interface because, as you will see, a class 
+can implement multiple interfaces.
+
+Declaring objects of an interface type
+
+You are very used to declaring and initializing variables using their 
+class.
+ Course oopda = new Course("OOPDA", "This course teaches advanced 
+Java.");
+ Section oopda01 = new Section(oopda, 1, "MW 17:00 Robinson 325");
+
+But did you know you could declare a variable as its interface?
+ List<String> list = 
+new ArrayList<String>(List.of("Peter", "Paul", "Mary"));
+ Enrollable oopda01 = new Section(oopda, 1, "MW 17:00 Robinson 325");
+
+When the declared type is different from the actual type
+Consider this code:
+private static Course oopda = new Course("OOPDA", "This course teaches advaned Java.");
+private static Section oopda01 = new Section(oopda, 1, "MW 17:00 Robinson 325");
+private static Enrollable oopda02 = new Section(oopda, 1, "MW 12:30 Robinson 312");
+
+Left: static
+Right: dynamic
+
+Casting and instanceof
+
+A type S is a supertype of the type T (the subtype) when any value of the 
+subtype can be assigned to a variable of the supertype without a 
+conversion.
+
+private static Enrollable oopda02 = new Section(oopda, 1, "MW 12:30 Robinson 312");
+
+For example, the Enrollable interface is a 
+supertype of the Section class 
+
+*The compiler deals only in static types*
+
+If you are certain of the dynamic type of an object, you can cast it.  So 
+the compiler will take your word for it.
+
+private static Course oopda = new Course("OOPDA", "This course teaches advaned Java.");
+private static Section oopda01 = new Section(oopda, 1, "MW 17:00 Robinson 325");
+private static Enrollable oopda02 = new Section(oopda, 1, "MW 12:30 Robinson 312");
+
+It is a good idea to make an instanceof check before using a cast.
+
+Extending interfaces
+An interface can extend another, requiring or providing additional methods on 
+top of the original ones. 
+ For example, Closeable is an interface with a single method: 
+public interface Closeable {
+    void close();
+} 
+
+ The Channel interface extends this interface: 
+public interface Channel extends Closeable {
+    boolean isOpen();
+}
+
+ Therefore, a class that implements the interface 
+Channel will have defined methods from both 
+interfaces.
+
+ LinkedList has a getFirst() method of its own, but
+picks up sort() from its interface List which, in turn,
+picks up stream() because List extends Collection.
+
+The Diamond Problem AKA "The Diamond of Death"
+
+Imagine we have an interface A with an 
+abstract someMethod()
+
+ Interfaces B & C both extend A and provide a 
+default implementation for someMethod()
+
+ Class D combines the functionality of B & C by 
+implementing both but does not override someMethod
+()
+
+ If D doesn't provide a method body, which 
+implementation of someMethod() should D 
+inherit?
+ java: class D inherits unrelated 
+defaults for someMethod() from types B 
+and C 
+ D needs to provide a method body for someMethod
+()
+
+There are four types of methods that can be placed into
+an interface
+
+Type(s): abstract, default, static, private
+Characteristics:
+Abstract - method only has a header
+default - method has a body and the default keyword
+static - method is at the interface level
+private - "helper" methods for othwr interface methods
+
+Rules for private methods:
+1. Private interface method cannot be abstract.
+2. Private method can be used only inside interface.
+3. Private static method can be used inside other static and 
+non-static interface methods.
+4. Private non-static methods cannot be used inside private static 
+methods.
+
+public interface Analyzable {
+   default HashSet<String> processText(String value) {
+      // Parse the string into words using a RegExp of delimiters
+      String[] tokens = removeTags(value).split("[\n\t\r (),.:;+]"); 
+      HashSet<String> uniqueWords = new HashSet<>();
+      ...
+   }
+   private String removeTags(String value) {
+      return value.replaceAll("\\<.*?\\>", "");
+
+^ This private "helper" method 
+will remove HTML tags, 
+e.g., <p> from a String
+
+Interfaces: Designs for the Future
+In our Section Tally example, we made an ArrayList of Enrollables, not 
+Sections
+
+private static List<Enrollable> classes = new ArrayList<Enrollable>();
+
+ Since Sections were Enrollable, we could add Sections to the list.
+Section oopda01 = new Section(oopda, 1, "MW 17:00 Robinson 325");
+classes.add(oopda01);
+
+ When we wanted to add a new class Seminar, we could make it implement 
+Enrollable as well.  And therefore add it to our ArrayList of Enrollables
+Speaker emil = new Speaker("Emil Eifrem", "emil@neo4j.com");
+LocalDateTime time = LocalDateTime.of(2021, 12, 17, 11, 0);
+classes.add(new Seminar("Using Neo4j", time, "Tohill", emil));
+
+ And we could ensure that all Sections and Enrollables had to implement 
+certain behaviors, like:
+ add(), drop(), getDetails()
+
+ Therefore, we could loop through the collection and be guaranteed that 
+the methods (behaviors) would be there!
+classes.forEach(e -> System.out.println(e.getDetails()));
+
+An interface can contain six different things:
+1. Constant variables
+2. Abstract methods
+3. Default methods
+4. Static methods
+5. Private Static Private methods
+6. methods
+
+In summary
+
+1. An interface specifies a set of methods that an implementing class 
+must provide. 
+
+2. An interface is a supertype of any class that implements it. 
+Therefore, one can assign instances of the class to variables of the 
+interface type. 
+
+3. An interface can contain static methods. 
+
+4. All variables of an interface are automatically public, static, and final.
+
+5. An interface can contain default methods that an implementing class 
+can inherit or override. 
+
+6. An interface can contain private methods that cannot be called or 
+overridden by implementing classes. 
+
+7. The Comparable and Comparator interfaces are used for comparing 
+objects.
+
+
+LAB
+import java.util.ArrayList;
+
+/*
+ * Build a driver class and enhance a Notebook class with several useful ArrayList methods.
+ * @author Antonio Rosado
+ * @version (9/20/22)
+ */
+public class noteBook {
+
+	private ArrayList<String> notes; // ArrayList for notes
+
+	/**
+	 * Creates a new empty list to hold notes
+	 */
+	public noteBook() // Constructor
+	{
+		notes = new ArrayList<>();
+	}
+
+	/**
+	 * Returns notes in list
+	 */
+	public ArrayList<String> getNotes() // accessor method
+	{
+		return notes;
+	}
+
+	/**
+	 * Returns number of notes in list
+	 */
+	public int getNumberOfNotes() // accessor method
+	{
+		return notes.size();
+	}
+
+	/**
+	 * Allows user to add note(s) to list and prints newly added note
+	 * 
+	 * @param String noteName name of note added
+	 */
+	public boolean addNote(String noteName) // mutator method
+	{
+		if (noteName != null && !notes.contains(noteName)) {
+			System.out.println("ADDED " + noteName.toLowerCase());
+
+			return notes.add(noteName.toLowerCase());
+		} else {
+			System.out.println("Error: can NOT add invalid note");
+			return false;
+		}
+	}
+
+	/**
+	 * Allows user to delete note(s) in list and prints deleted note
+	 * 
+	 * @param String noteName name of note removed
+	 */
+	public boolean deleteNote(String noteName) // mutator method
+	{
+		if (noteName != null) {
+			System.out.println("DELETED " + noteName.toLowerCase() + " " + notes.remove(noteName));
+			return notes.remove(noteName);
+		} else {
+			System.out.println("Error: can NOT delete invalid note");
+			return false;
+		}
+	}
+
+	/**
+	 * Prints position of a note based on it's value
+	 * 
+	 * @param String noteName name of note removed
+	 */
+	public void getNoteNumber(String noteName) // accessor method
+	{
+		if (noteName != null) {
+			System.out.println("Note: " + noteName + "at " + noteName.indexOf(noteName));
+		} else {
+			System.out.println("NO note found");
+		}
+	}
+
+	/**
+	 * Prints note based on it's given position
+	 * 
+	 * @param int index index of note searched for
+	 */
+	public void getNote(int index) // accessor method
+	{
+		if (index >= 0 && index <= notes.size()) {
+			System.out.println(notes.get(index) + " at index " + index);
+		} else {
+			System.out.println("NO note found at index " + index);
+		}
+	}
+
+	/**
+	 * Updates note text for a given position
+	 * 
+	 * @param int    index index of note searched for
+	 * @param String newNote newNote to replace given position
+	 */
+	public void setNote(String newNote, int index) // mutator method
+	{
+		if (newNote != null && index >= 0 && index <= notes.size()) {
+			System.out.println("Replacing note at index: " + index + "/n with new note: " + newNote);
+			notes.set(index, newNote);
+		} else {
+			System.out.println("NO note found at index " + index);
+		}
+	}
+
+	/**
+	 * Moves note text up at a given position
+	 * 
+	 * @param String newNote name of note to be replaced
+	 */
+	public void moveNoteUp(String noteName) // mutator method
+	{
+		int noteIndex = notes.indexOf(noteName.toLowerCase());
+		if (noteIndex == 0) {
+			return;
+		}
+
+		if (noteIndex == -1) {
+			System.out.println("No note with that name exists");
+			return;
+		}
+		notes.remove(noteIndex);
+		notes.add(noteIndex - 1, noteName.toLowerCase());
+	}
+
+	/**
+	 * Moves note text down at a given position
+	 * 
+	 * @param String newNote name of note to be replaced
+	 */
+	public void moveNoteDown(String noteName) // mutator method
+	{
+		int noteIndex = notes.indexOf(noteName);
+		if (noteIndex == 0)
+			return;
+		if (noteIndex == -1) {
+			System.out.println("No note with that name exists");
+			return;
+		}
+		notes.remove(noteIndex);
+		notes.add(noteIndex + 1, noteName);
+	}
+
+	/**
+	 * Moves note text to the top of the list at a given position
+	 * 
+	 * @param String noteName name of note to be moved
+	 */
+	public void moveNoteToTop(String noteName) // mutator method
+	{
+		if (noteName != null) {
+			int noteIndex = notes.indexOf(noteName);
+			notes.remove(noteIndex);
+			notes.add(0, noteName);
+		} else {
+			System.out.println("No note with that name exists");
+		}
+	}
+
+	/**
+	 * Moves note text to the bottom of the list at a given position
+	 * 
+	 * @param String noteName name of note to be moved
+	 */
+	public void moveNoteToBottom(String noteName) // mutator method
+	{
+		int noteIndex = notes.indexOf(noteName);
+		notes.remove(noteIndex);
+		notes.add(noteName);
+	}
+
+}
+
+
+TEST
+
+public class noteBookTest {
+
+	private static noteBook calculusTwo = new noteBook();
+	// ArrayList<String> notes = new ArrayList<String>();
+
+	public static void main(String[] args) {
+		populateNotes();
+		moveNoteUpByTwo();
+		displayNotes();
+	}
+
+	private static void populateNotes() {
+		System.out.println("Creating notes: \n");
+		calculusTwo.addNote("Derivatives");
+		calculusTwo.addNote("Anti Derivatives");
+		calculusTwo.addNote("Integrals");
+		calculusTwo.addNote("Volume With Slices");
+	}
+
+	private static void moveNoteUpByTwo() {
+		for (int moves = 0; moves < calculusTwo.getNumberOfNotes(); moves++)
+			calculusTwo.moveNoteUp("Integrals");
+	}
+
+	private static void displayNotes() {
+		System.out.println("Notes in notebook: " + "\n" + calculusTwo.getNotes());
+	}
+}
+

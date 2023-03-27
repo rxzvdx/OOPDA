@@ -1,0 +1,3 @@
+ask how to extend both rabbit and fox
+make sure run and hunt in rabbit/fox classes literally being named "act" is correct
+see why act in animal is giving error

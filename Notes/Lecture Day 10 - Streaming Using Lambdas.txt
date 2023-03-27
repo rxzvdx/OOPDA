@@ -1,0 +1,191 @@
+A functional interface is an interface that defines only one method
+Comparable - defines compareTo()
+Comparator - defined compare()
+
+Java provides us with some very useful functional interfaces...
+
+You can assign a lambda exoression to a functional interface or you could use a 
+method reference
+Class::instanceMethod
+Class::sttaicMethod
+object:instanceMethod
+
+A collection is an in-memory data structure to hold values and before we start 
+using collection, all the values should have been populated.  
+Whereas a stream is a data structure that is computed on-demand.
+Streams do not store data, they operate on the source data structure and produce 
+pipelined data that we can use and perform specific operations such as filtering
+Streams are consumable.  It is impossible to reuse the same stream multiple times.
+Streams support sequential as well as parallel processing, parallel processing can 
+be very helpful in achieving high performance for large collections.
+
+private static long longWordsIterate(List<String> words) {
+   int count = 0;
+   for (String w : words) {
+      if (w.length() > 12) count++;
+   } 
+   return count;
+}
+
+private static long longWordsStream(List<String> words) {
+   return words.stream()
+               .filter(w -> w.length() > 12)
+               .count();
+}
+
+Code is more intuitive, each operation on the stream is clearly described.
+Where the loop prescribes the order of operations in complete detail, a 
+stream is able to schedule the operations any way it wants.  
+We could even process in parallel!
+
+Create a stream. 
+Specify intermediate operations for transforming the initial stream into 
+others, possibly in multiple steps. 
+Apply a terminal operation to produce a result. This operation forces 
+the execution of the lazy operations that precede it.  Afterwards, the 
+stream can no longer be used.
+
+private static double averageSalaryByGender(
+		Set<Person> persons, Person.Gender gender) {
+
+   return persons.parallelStream()
+                 .filter(p -> p.getGender() == gender)
+                 .mapToDouble(Person::getSalary)
+                 .average()
+                 .getAsDouble();
+}
+
+private static long longWordsStream(List<String> words) {
+   return words.stream()
+               .filter(w -> w.length() > 12)
+               .count();
+}
+
+private void displayLongWords(List<String> words) {
+ words.stream()
+      .filter(w -> w.length() > 12)
+      .forEach(w -> System.out.println(w));
+}
+
+Collecting elements of a stream
+
+List<Integer> luckyNumbers = Arrays.asList(7, 10, 11, 13, 19, 30, 41);
+
+List<Integer> oddLuckyNums = luckyNumbers.stream()
+                                         .filter(i -> i % 2 != 0)
+                                         .collect(Collectors.toList());
+
+Tell the JVM to process the List of integers serially (not in parallel).
+Filter by restricting values to odd numbers.
+Collect the resulting numbers from the odd number stream to a new ArrayList.
+(toList() creates an ArrayList) 
+
+.collect(Collectors.toCollection(LinkedList::new));
+
+This alternate code collects the resulting numbers from the odd number stream 
+to a new LinkedList.
+
+Very powerful to build Maps using grouping
+
+public static ArrayList<Book> books = new ArrayList<Book>();
+
+public static void main(String[] args) {
+   addBooks();
+   Map<Genre, List<Book>> booksByGenre = 
+      books.stream().collect(Collectors.groupingBy(Book::getGenre));
+   booksByGenre.forEach( (k, v) -> System.out.println(k + ": " + v));
+}
+ 
+private static void addBooks() {
+   books.add(new Book("It", "Stephen King", Book.Genre.Horror));
+   books.add(new Book("Carrie", "Stephen King", Book.Genre.Horror));
+   books.add(new Book("Foundation", "Isaac Asimov", Book.Genre.SciFi));
+   books.add(new Book("Horrorstör", "Grady Hendrix", Book.Genre.Horror));
+   books.add(new Book("White Guilt", "Shelby Steele", Book.Genre.Nonfiction));
+   books.add(new Book("How to Be an Anti-Racist", "Ibram Kendi", Book.Genre.Nonfiction));
+   books.add(new Book("Becoming", "Michele Obama", Book.Genre.Nonfiction));
+   books.add(new Book("Dune", "Frank Herbet", Book.Genre.SciFi));
+   books.add(new Book("The Store", "Bentley Little", Book.Genre.Horror));
+   books.add(new Book("Agency", "William Gibson", Book.Genre.SciFi));
+}
+
+Nonfiction: [White Guilt by Shelby Steele, How to Be an Anti-Racist by Ibram Kendi, Becoming by Michele Obama]
+Horror: [It by Stephen King, Carrie by Stephen King, Horrorstör by Grady Hendrix, The Store by Bentley Little]
+SciFi: [Foundation by Isaac Asimov, Dune by Frank Herbet, Agency by William Gibson]
+
+Map and FlatMap
+A strea, transformation produces a stream whose elements are derived
+from those of another stream
+
+map()
+Here's the example from the text of transforming (mapping) a stream 
+of strings to a stream of substrings.
+
+System.out.println("Count of words that start with each letter.");
+Map<String, Long> startingLetters = 
+    words.stream()
+         .map(s -> s.substring(0, 1).toLowerCase())
+         .collect(Collectors.groupingBy(Function.identity(),
+                                        Collectors.counting()));
+
+startingLetters.forEach( (k, v) -> System.out.println(k + " " + v));
+
+.map() transforms the String "Interface" to "i", 
+the string "like" to "l"…
+
+Yes, the collect method is advanced, but this is how you can 
+get a count of the distinct objects coming through stream
+
+flatMap
+turning a collection into individual objects
+
+Reductions
+private static double averageSalaryByGender(
+		Set<Person> persons, Person.Gender gender) {
+
+   return persons.parallelStream()
+                 .filter(p -> p.getGender() == gender)
+                 .mapToDouble(Person::getSalary)
+                 .average()
+                 .getAsDouble();  // Why do we need?  See next slide
+}
+
+Tell the JVM to process the Set of persons in parallel.
+Filter based on the Gender passed to the method.
+
+Return a stream of Doubles (a DoubleStream), so we can perform 
+calculations on the persons of the desired gender.  Note how the 
+instance method was identified
+
+Calculate the average using the average() method of DoubleStream.
+(You could also calculate the sum(), min() or max(). )
+getAsDouble() is a functional interface which is used as the 
+assignment target of the lambda expression.  It returns the value 
+from the call to average()
+
+private static double averageSalaryByGender(
+		Set<Person> persons, Person.Gender gender) {
+
+   return persons.parallelStream()
+                 .filter(p -> p.getGender() == gender)
+                 .mapToDouble(Person::getSalary)
+                 .average()
+                 .getAsDouble();
+}
+
+Why do we need getAsDouble?
+
+The average operation calculates the average value of the 
+elements contained in the DoubleStream but returns an object 
+of type OptionalDouble.
+
+The OptionalDouble object may be an empty instance, or it might 
+have the double answer you expect.
+
+Hence we need .getAsDouble() to return the value.  getAsDouble() 
+will throw an exception if the OptionalDouble object is an empty instance.
+
+
+
+
+

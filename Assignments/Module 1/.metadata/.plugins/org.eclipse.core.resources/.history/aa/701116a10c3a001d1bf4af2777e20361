@@ -1,0 +1,41 @@
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Scanner;
+
+public class MovieDriver {
+	
+	private static HashMap <Integer, Movie> movies = new HashMap<Integer, Movie>();
+
+	public static void main(String[] args) {
+		populateMovies();
+		displayMovies();
+	}
+
+	/**
+	 * This method uses a Scanner and gets user input for three movies (title, length, release date
+	 * which it will then use to make a new Movie and add it into the HashMap movies.
+	 */
+	private static void populateMovies() {
+		System.out.println("Creating movies");
+		// Movie objects
+		Movie sheDiesTM = new Movie("She Dies Tomorrow", 84, "2020-07-31");
+		Movie swimmingPool = new Movie("Swimming Pool", 103, "2003-07-02");
+		Movie exam = new Movie("Exam", 101, "2010-08-10");
+		movies.put(1, sheDiesTM);
+		movies.put(2, swimmingPool);
+		movies.put(3, exam);
+	}
+	
+	/**
+	 * This method loops through all the movies using the forEach method 
+	 * and displays each movie using its toString() method.
+	 */
+	private static void displayMovies() {
+		System.out.println("\nHere is the list of movies:");
+		for (Integer key : movies.keySet())
+		{
+			System.out.println(movies.get(key));
+		}
+		// loop through movies hashMap, and print 
+	}
+}

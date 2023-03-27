@@ -1,0 +1,629 @@
+java.io package covers most input and output
+
+Closeable
+
+Input-output is particularly error-prone
+
+Checked exception for Java I/O
+java.io.IOException - a generic I/O exception
+EOFException - move specific end of file exception
+FileNotFoundException - more specific file not found exception
+
+InputStream
+ The read() method returns a int containing the byte value of the byte read. 
+ If there are no more data to be read, the read() method returns -1
+public class FileStreamDemo { 
+public static void main(String[] args) {
+  int data = 0;  // Notice that this example is byte-based.
+  try (InputStream input = new FileInputStream("resources/ada.txt")) {
+    do {
+      data = input.read();
+      System.out.print(data + " ");  // echo the data read to console
+    } while (data != -1);
+    System.out.println();
+    input.close();  // really not needed, because try with resources will close
+  } 
+  catch (IOException e) { e.printStackTrace(); }
+  data = 0;  // reset variable to store bytes
+  // Re-read data, but printout character equivalents
+  try (InputStream input = new FileInputStream("resources/ada.txt")) {
+    while (data != -1) {
+      data = input.read();
+      if (data != -1) System.out.print((char) data + " ");  // echo the data
+    }
+  } 
+
+Working with Files: 
+Which classes to use?
+ The FileReader  class lets you read the contents of a file as a stream of 
+characters. 
+ It works much like the FileInputStream  except the FileInputStream reads 
+bytes, whereas the FileReader  reads characters. 
+ One character may correspond to one or more bytes depending on the 
+character encoding scheme.  (e.g., UTF-8 vs UTF-16)
+ The read() method of a FileReader  returns an int which contains the char 
+value of the character read. 
+ If the read() method returns -1, there is no more data to read in the 
+FileReader, and it can be closed.  That is, -1 as int value, not -1 as 
+character value. There is a difference here! 
+
+/* Case 1:  Use FileReader */
+try (Reader myReader = new FileReader(FILE_NAME)) {
+  System.out.println("\nIs the stream ready? " + myReader.ready());
+  printline();
+  while ((i = myReader.read()) != -1) {
+    myReader.skip(1);            // Let's skip every other character
+    System.out.print((char) i);
+  }
+  System.out.println(System.lineSeparator());
+} 
+catch (IOException e) {
+  e.printStackTrace();
+}
+
+FileReader has methods to read() a 
+character, skip() a character or 
+close() the stream.
+
+Close is invoked by 
+try with resources
+
+The FileWriter  class lets you write the contents of a file as a stream of 
+characters. 
+ When you create a FileWriter you can decide whether to overwrite or 
+append to the specified file. 
+ The constructor taking just one parameter, the file name, will overwrite any 
+existing file or create a new one: 
+Writer writer = new FileWriter("c:\\data\\output.txt"); 
+ Another constructor takes 2 parameters -- the file name and a boolean.  
+Writer writer = new FileWriter("c:\\data\\output.txt", true);  //append
+Writer writer = new FileWriter("c:\\data\\output.txt", false); //overwrite
+
+private static final String FILE_NAME_1 = "resources/output_o.txt";
+private static final String FILE_NAME_2 = "resources/output_a.txt";
+private static final boolean APPEND_MODE = true;
+private static final boolean OVERWRITE_MODE = false;
+try (Writer myWriter_O = new FileWriter(FILE_NAME_1, OVERWRITE_MODE); 
+     Writer myWriter_A = new FileWriter(FILE_NAME_2, OVERWRITE_MODE);) {;
+  // In the beginning both files were opened as overwrite
+  myWriter_O.write("Working with FileReaders and FileWriters is rough!");
+  myWriter_A.write("Working with FileReaders and FileWriters is rough!");
+  myWriter_O.write(System.lineSeparator());  // new line (regardless of op system!)
+  myWriter_A.write(System.lineSeparator());
+  myWriter_O.write("Why did I sign up for this course?");
+  myWriter_A.write("Why did I sign up for this course?");
+} catch (IOException e) { e.printStackTrace(); }
+// Both comments were added to each file.  (Overwrite is just how to BEGIN writing)
+// Then each file was opened in a different mode
+try (Writer myWriter_O = new FileWriter(FILE_NAME_1, OVERWRITE_MODE); 
+     Writer myWriter_A = new FileWriter(FILE_NAME_2, APPEND_MODE);) {
+  myWriter_O.write(System.lineSeparator());
+  myWriter_A.write(System.lineSeparator());
+  myWriter_O.write("Scratch that.  FileReaders and FileWriters are easy.");
+  myWriter_A.write("Scratch that.  FileReaders and FileWriters are easy.");
+  myWriter_O.close();
+  myWriter_A.close(); 
+  // output_o only has one line in it; output_a has all three.
+} catch (IOException e) { e.printStackTrace(); }
+
+File and Directory Info Access
+Sometimes you may need access to information about a file 
+rather than its content. 
+e.g., file size or the file attributes. 
+The same may be true for a directory. 
+For instance, you may want to get a list of all files in a given directory.
+Both file and directory information is available via the File class. 
+FileInfo demo
+
+File myDirectory = new File("C:\\temp");
+      
+// Load an array list of file names
+ArrayList<String> fileNames = 
+             new ArrayList<String>(Arrays.asList(myDirectory.list()));
+      
+// Load an array list of files
+ArrayList<File> files = 
+             new ArrayList<File>(Arrays.asList(myDirectory.listFiles()));           
+try {
+   for (File f : files ) {
+      boolean executable = f.canExecute(); // based on permission (true even if
+                                           // if it's not an executable file!) 
+      boolean writeable = f.canWrite();
+      boolean readable = f.canRead(); 
+      String absPath = f.getAbsolutePath();    // find the absolute path
+      System.out.print(absPath);
+      System.out.println(" is readable: " + readable +
+                       "; is writeable: " + writeable +
+                       "; is executable: " + executable);
+      Instant instant = Instant.ofEpochMilli(f.lastModified());
+      LocalDateTime date = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+      System.out.println("  parent: " + f.getParent() + "; modified: " + date); 
+
+
+Code that creates a directory if it doesn't already exist
+Strign dirString = "c:/murach/java/files";
+Path dirPath = Paths.get(dirString);
+if(Files.notExists(dirPath){
+	Files.createDirectories(dirPath);
+}
+
+Code that creates a file if it doesn't already exist
+String fileString = "products.txt";
+Path filePath = Paths.get(dirString, fileString);\
+if(Files.notExists(filePath)) {
+	Files.createFile(filePath);
+}
+
+Code that displays info about a file
+System.out.println("File name:     " +
+	filePath.getFileName());
+System.out.println("Absolute path:     " +
+	filePath.toAbsolutePath());
+System.out.println("Is writable:     " +
+	filePath.isWritable(filepath)());
+
+Output:
+Cile name: 		products.txt
+Absolute path: 	c:\murach\java\files\products.txt
+Is writable: 	true
+
+Working with pipes: 
+Pipes in Java IO provides the ability for two threads running in the same 
+JVM to communicate. 
+ As such pipes are a common source or destination of data
+public class Pipes {
+   public static void main(String[] args) throws Exception {
+      System.out.println("Test of Pipe IO\n");
+      Sender sender = new Sender();  // Sender & Receiver are classes in    
+                                     //    same file
+      Receiver receiver = new Receiver(sender);
+      sender.start(); // Start the sender thread
+      receiver.start(); // Start the receiver thread
+      Thread.sleep(8000); // Take an 8 second nap
+      sender.interrupt(); // Interrupt the sender thread
+   }
+}
+
+Slide 26Slide 26
+class Sender extends Thread {
+   private Random rand = new Random();
+   private PipedWriter out = new PipedWriter();
+   public PipedWriter getPipedWriter() { 
+      return out; 
+   }
+   // Invoking start() on a Thread will cause the JVM to invoke run()
+   public void run() {
+      while (true) {
+         for (char c = 'A'; c <= 'z'; c++) {
+            // Just keep writing the characters from A to z
+            try {
+               out.write(c);
+               System.out.println("Wrote: " + c);
+               sleep(rand.nextInt(500));
+            } catch (InterruptedException e) {
+                System.out.println("* Sending thread has been interrupted and
+                                      has stopped sending data" ); 
+                return;  
+                // return finishes the thread, but PipedWriter never closed!
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+         }
+      }
+   }
+}
+
+class Receiver extends Thread {
+   private PipedReader in;
+   public Receiver(Sender sender) throws IOException {
+      in = new PipedReader(sender.getPipedWriter());
+   }
+   // Invoking start() on a Thread will cause the JVM to invoke run() 
+   public void run() {
+      try {
+         while (true) {
+            // Blocks until characters are there:
+            System.out.println("\t\tRead: " + (char)in.read());
+         }
+      } catch (IOException e) {
+         /* We want to catch the fact that the sender did not close 
+          * the PipedWriter after it was interrupted.  This will 
+          * trigger an IO exception for the PipedReader. 
+          */
+         System.out.println("\t\t* The sending thread finished without
+                                         closing their side of the pipe." );
+         System.out.println("\t\t  "+ e.getClass().getSimpleName() + " " + 
+                                e.getMessage());
+      }
+   }
+}
+
+Working over a network connection
+Java IO over a network
+Once a network connection is established between two processes, the 
+processes communicates via the network connection just like they 
+would with a file: 
+ an InputStream to read data
+ an OutputStream to write data. 
+ In other words, Java IO is being used to pass the data to send to the Java 
+networking API. 
+ Basically this means that if you have code that is capable of writing 
+something to a file, that same something could easily be written to a 
+network connection. 
+ All that is required is that your component doing the writing depends 
+on an InputStream instead of a FileInputStream. 
+ Since FileInputStream is a subclass of InputStream this should be no 
+problem. 
+
+Working over standard input and output streams
+
+System.in
+ System.in is an InputStream 
+which is typically connected to 
+keyboard input of console 
+programs.   
+ We have used System.in when 
+we create a Scanner object.
+
+System.out
+ System.out is a PrintStream. 
+ System.out normally outputs the 
+data you write to it to the console. 
+ We have used 
+System.out.println() often.
+
+System.err
+ System.err is a PrintStream. 
+ System.err works like System.out 
+except it is normally only used to 
+output error texts. 
+ Eclipse will show the output to 
+System.err in red text, to make it 
+more obvious that it is error text. 
+Java IO over the standard IO Streams
+
+public class SystemErrDemo {
+   public static void main(String[] args) {
+      try {
+         // Run a method that will cause an exception
+         raiseAnException();
+      }
+      catch (Exception e) {
+         System.err.println("Yes, we just caused an exception.
+                                                        See below.\n" );
+         //  Using the printStackTrace of the Exception object 
+         //  also uses System.err
+         e.printStackTrace();  
+      }
+   }
+   private static void raiseAnException() {
+      throw new IllegalStateException();
+   }
+}
+
+Switching streams
+Exchanging System Streams
+ You can set a new InputStream for System.in
+ You can set a new OutputStream for System.out or System.err, 
+and all further data will be read / written to the new stream. 
+ To set a new System stream, use one of these methods:
+ System.setIn()
+ System.setOut() 
+ System.setErr()
+
+public class SwitchingStreams {
+   public static void main(String[] args) throws FileNotFoundException {
+      OutputStream output = 
+          new FileOutputStream("c:\\temp\\redirectedOutput.txt");
+      PrintStream printOut = new PrintStream(output);  // Need PrintStrean here
+      System.out.println("This should go to the console (System.out)");
+      System.setOut(printOut);
+      System.out.println("But this should go to a file.");
+      /* After you're done writing everything, some data may still be in
+       * the buffer.  Now you have to flush the buffer, to force it to
+       * send all the data. */
+      printOut.flush();
+      // Of course you must close the file.
+      printOut.close();
+   }
+}
+
+Serialization
+Allows whole objects to be written into a file
+Works both with simple and multi-component objects (i.e., 
+collections)
+Class must implement interface Serializable defined 
+in package java.io
+Interface Serializable has no methods 
+Serialization is handled automatically by runtime system
+
+he ability to store and retrieve Java objects is essential to building all 
+but the most transient applications. 
+ The key to storing and retrieving objects in a serialized form is 
+representing the state of objects sufficient to reconstruct the object(s).
+ Objects to be saved in the stream implement the Serializable interface. 
+ For Java objects, the serialized form must be able to identify and verify 
+the Java class from which the contents of the object were saved and to 
+restore the contents to a new instance. 
+ For serializable objects, the stream includes sufficient information to 
+restore the fields in the stream to a compatible version of the class.
+
+When an object is serialized, all the objects it refers to from instance 
+variables are also serialized.
+
+SerialVersionUID
+The serialization runtime associates with each serializable class a 
+version number, called a serialVersionUID
+ Used during deserialization to verify that the sender and receiver of a 
+serialized object have loaded classes for that object that are compatible
+ If the receiver has loaded a class for the object that has a 
+different serialVersionUID than that of the corresponding sender's class, 
+then deserialization will result in an InvalidClassException.
+ A serializable class can declare its own serialVersionUID explicitly by 
+declaring a field namedserialVersionUID that must be static, final, and 
+of type long.
+
+//eclipse can generate serial version IDs
+
+object serialization example
+/** Player class
+ * 
+ * @version 1.0
+ * @author J. Myers
+ */
+public class Player implements Serializable {
+private static final long serialVersionUID = -8274170900300199913L;  
+private String name;
+private Race race;
+private Role role;
+private char gender;
+private int level;
+private ArrayList<Statistic> stats;
+private Zone zone;
+public enum Role 
+  { WARRIOR, PRIEST, HUNTER, MAGE, PALADIN, WARLOCK, ROGUE }
+
+object serialization example 2
+/** Player class
+ * 
+ * @version 2.0
+ * @author J. Myers
+ */
+public class Player implements Serializable {
+private static final long serialVersionUID = 7023486349133662975L;  
+private String name;
+private Race race;
+private Role role;
+private char gender;
+private int level;
+private ArrayList<Statistic> stats;
+private Zone zone;
+public enum Role 
+  { WARRIOR, PRIEST, HUNTER, MAGE, PALADIN, WARLOCK, ROGUE, SHAMAN }
+
+Connection streams and chain streams
+ Connection streams represent a connection to a source or destination 
+(file, socket, etc.) 
+ Chain streams can’t connect on their own and must be chained to a 
+connection stream. 
+ The Java I/O API has connection streams, that represent connections 
+to destinations and sources such as files or network sockets, and 
+chain streams that work only if chained to other streams.
+
+For HW
+1. io.pipes package
+ Download the io.pipes package, run the code, and in a Word document 
+explain how the IO is working in this application.
+2. Serialize package
+ Download the serialize package, follow the instructions which can be 
+displayed from the Driver class, and copy the console output from the 
+deserialization into the Word document.
+
+Working with memory buffers
+ In a FileReader, we read character by character
+ Reading every character, one at a time, is slow!
+ From the Java API:
+ A  BufferedReader  reads text from a character-input stream, buffering 
+characters so as to provide for the efficient reading of characters, arrays, 
+and lines. The buffer size may be specified, or the default size may be used. 
+The default is large enough for most purposes. 
+ In general, each read request made of a Reader  causes a corresponding 
+read request to be made of the underlying character or byte stream. It is 
+therefore advisable to wrap a BufferedReader  around any Reader  whose 
+read() operations may be costly, such as FileReaders  and 
+InputStreamReaders.
+
+Buffering 1
+Buffered Streams
+ The examples in the previous section we've seen so far 
+use unbuffered I/O. 
+ This means each read or write request is handled directly by underlying 
+OS. 
+ This can make a program much less efficient, since each such request 
+often triggers disk access, network activity, or some other operation that 
+is relatively expensive.
+ To reduce this kind of overhead, the Java platform 
+implements buffered I/O streams. 
+ Buffered input streams read data from a memory area known as a buffer; 
+the native input API is called only when the buffer is empty. Similarly, 
+buffered output streams write data to a buffer, and the native output API 
+is called only when the buffer is full.
+
+Buffering 2
+A program can convert an unbuffered stream into a buffered stream using 
+a wrapping idiom, where the unbuffered stream object is passed to the 
+constructor for a buffered stream class. 
+ try (PrintWriter out = new PrintWriter(
+                       new BufferedWriter(
+                       new FileWriter(productsFile))))
+ There are four buffered stream classes used to wrap unbuffered 
+streams: 
+ BufferedInputStream and BufferedOutputStream create buffered byte streams
+ BufferedReader and BufferedWriter create buffered character streams.
+
+Flushing buffered streams
+ It often makes sense to write out a buffer at critical points, without waiting 
+for it to fill. This is known as flushing the buffer.
+ Some buffered output classes support autoflush, specified by an optional 
+constructor argument. 
+ When autoflush is enabled, certain key events cause the buffer to be flushed. 
+ For example, an autoflush PrintWriterobject flushes the buffer on every 
+invocation of println or format. 
+ To flush a stream manually, invoke its flush method. The flush method is valid 
+on any output stream, but has no effect unless the stream is buffered.
+
+How does a BufferedReader work?
+public class BufferedReader extends Reader { 
+   static final int DEFAULT_BUFFER_SIZE = 8192;
+   char[] buffer;    
+   Reader in; 
+   // BufferedReader both extends a Reader and has-a Reader?
+ 
+   public BufferedReader(Reader in) {
+      this(in, DEFAULT_BUFFER_SIZE );
+   }
+   public BufferedReader(Reader in, int size) {
+      super(in.lock);
+      if (size <= 0)
+         throw new IllegalArgumentException("Illegal buffer size: " + size);
+      this.in = in;
+      buffer = new char[size];
+   public void close() throws IOException {
+      synchronized (lock) {
+         if (in != null) in.close();
+         in = null;
+         buffer = null;
+
+StringBuilder class 
+When you use the String class, the string has a fixed length and you 
+can't edit the String.  In other words, Strings in Java are immutable.
+ When you assign a new value to a String variable, the original String 
+object is deleted, and it is replaced with a new String object that 
+contains the new value.
+ This creation and deletion of String objects uses a lot of processing.
+ Imagine if you are building a String in a loop with many concatenations, e.g.
+myString += "This is iteration " + i + ".";
+ Think of how many objects you are creating and destroying!
+ The StringBuilder class was designed to address this inefficiency.
+
+StringBuilder class is similar to String class
+However, you may change the contents of StringBuilder objects.
+You can change specific characters,
+insert characters, 
+delete characters, and 
+perform other operations.
+A StringBuilder object will grow or shrink in size, as 
+needed, to accommodate the changes.
+
+StringBuilder Constructors
+StringBuilder()
+This constructor gives the object enough storage space to hold 16 
+characters.
+StringBuilder(int length)
+This constructor gives the object enough storage space to hold length characters.
+StringBuilder(String str)
+This constructor initializes the object with the string in str. 
+The object will have at least enough storage space to hold the string in str.
+
+Other StringBuilder methods
+The String and StringBuilder also have common methods:
+char charAt(int position)
+void getChars(int start, int end,
+         char[] array, int arrayStart)
+int indexOf(String str)
+int indexOf(String str, int start)
+int lastIndexOf(String str)
+int lastIndexOf(String str, int start)
+int length()
+String substring(int start)
+String substring(int start, int end)
+
+Appending to a StringBuilder Object
+The StringBuilder class has several overloaded 
+versions of a method named append.
+They append a string representation of their argument to 
+the calling object’s current contents.
+The general form of the append method is:
+object.append(item);
+where object is an instance of the StringBuilder class and 
+item is:
+ a primitive literal or variable.
+ a char  array, or
+ a String literal or object.
+
+After the append method is called, a string representation of item will be appended to object’s contents.
+StringBuilder str = new StringBuilder();
+str.append("We sold ");
+str.append(12);
+str.append(" doughnuts for $");
+str.append(15.95);
+System.out.println(str);
+This code will produce the following output:
+We sold 12 doughnuts for $15.95
+
+The StringBuilder class also has several overloaded 
+versions of a method named insert
+These methods accept two arguments: 
+ an int that specifies the position to begin insertion, and
+ the value to be inserted.
+The value to be inserted may be
+a primitive literal or variable.
+a char array, or
+a String literal or object.
+
+The general form of a typical call to the insert method.
+ object.insert(start, item);
+ where object is an instance of the StringBuilder class, start is the 
+insertion location, and item is:
+ a primitive literal or variable.
+ a char array, or
+ a String literal or object.
+ Example: 
+http://jackmyers.info/java/src/Lesson-03/3-13/Telephone.java 
+http://jackmyers.info/java/src/Lesson-03/3-13/TelephoneTester.java 
+
+Replacing a Substring in a StringBuilder Object
+The StringBuilder class has a replace method that 
+replaces a specified substring with a string.
+The general form of a call to the method:
+object.replace(start, end, str);
+ start is an int that specifies the starting position of a substring in the 
+calling object, and 
+ end is an int that specifies the ending position of the substring. (The 
+starting position is included in the substring, but the ending position is 
+not.)
+ The str parameter is a String object.
+After the method executes, the substring will be replaced with str.
+
+The replace method in this code replaces the word 
+“Chicago” with “New York”.
+StringBuilder str = new StringBuilder(
+         "We moved from Chicago to Atlanta.");
+str.replace(14, 21, "New York");
+System.out.println(str);
+The code will produce the following output:
+    We moved from New York to Atlanta.
+
+Other stringBuilder methods
+he StringBuilder class also provides methods to set 
+and delete characters in an object.
+StringBuilder str = 
+   new StringBuilder("I ate 100 blueberries!");
+// Display the StringBuilder object.
+System.out.println(str);
+// Delete the '0'.
+str.deleteCharAt(8);
+// Delete "blue".
+str.delete(9, 13);
+// Display the StringBuilder object.
+System.out.println(str);
+// Change the '1' to '5'
+str.setCharAt(6, '5');
+// Display the StringBuilder object.
+System.out.println(str);
+
+
+
+
+
+

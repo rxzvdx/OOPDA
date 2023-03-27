@@ -1,0 +1,143 @@
+Inheritance and interfaces work similar - somewhat
+
+Previously, we talked about interfaces which 
+could enforce certain behaviors in classes that 
+implemented them through abstract methods.
+
+ But we also had default methods whose 
+method body could be "inherited" by the 
+implementing class.
+
+ We could make a Section, e.g., oopda01, and 
+invoke the add() method.
+
+A superclass defined common instance variables and methods
+
+The subclasses inherit the superclass attributes, but also have their 
+own
+
+Superclass Post:
+public class Post  {
+    private String username;
+    private long timestamp;
+    private int likes;
+    private ArrayList<String> comments;
+    // constructor
+    public Post(String author) {
+        this.username = author;
+        this.timestamp = LocalDateTime.now();
+        this.likes = 0;
+        this.comments = new 
+ArrayList<String>();
+    }.
+}
+
+Subclasses MessagePost & PhotoPost:
+
+public class MessagePost extends Post  {
+    private String message;
+    // constructor
+    public MessagePost(String author, String text) 
+{
+           super(author);
+           this.message = text;
+     }
+}
+
+public class PhotoPost extends Post  {
+    private String filename;
+    private String caption;
+    // constructor
+   public PhotoPost(String author, String filename,
+                                  String caption) {
+           super(author);
+           this. filename = filename;
+           this.caption = caption;
+     }   
+}
+
+Inheritance: Constructors and super()
+Constructors are not inherited.
+ Subclass constructors must always contain a 'super' call
+
+ Must be the first statement in the subclass constructor.
+
+ A call to super() will be created in compilation even if the 
+subclass doesn’t ask for it.
+	- public class MessagePost extends post
+	{	
+		private string message;
+		
+	}
+Is the SAME as:
+	- public MessagePost(String author, String text)
+	{
+		super(author);
+		this.message = text;
+	}	
+(according to eclipse)
+
+ You can always invoke any method in the superclass by calling 
+super.methodName(arguments)
+	 Note: when invoking interface methods, you need to specify 
+the interface
+Enrollable.super.add(student);
+
+ You do not need to include the name of the super class when calling 
+one of its methods.  A class only has one superclass.
+
+Overriding Superclass Methods with Covariant Return Types
+As we learned when using interfaces, to override a method, the 
+replacement method must have the same method signature and the 
+return type must be "covariant".  
+ Covariant means that the return type must be of the same type or a 
+more specific type. 
+ 
+ Example, Manager is a subclass of Employee, but
+when an instance of Employee invokes getManager(),
+an Employee object is returned.
+ But when and instance of Manager invokes 
+getManager(), a Manager object is returned.
+public Employee getManager()  {
+   // Don't return a sensitive Manager object
+   // but an Employee representation with less
+   // attributes
+   return new Employee(this.manager);
+  }
+  @Override
+  public Manager getManager() {
+     return this.manager;
+}
+
+Preventing a Method from Being Overridden
+The final modifier will prevent the  overriding of a superclass 
+method in a subclass.
+public final void message()
+
+ If a subclass attempts to override a final method, the compiler 
+generates an error. 
+
+ This ensures that a particular superclass method is used by 
+subclasses rather than a modified version of it.
+
+Polymorphism
+
+Polymorphic method dispatch
+ How the Java engine knows which method
+to use.
+ Always start at the dynamic type and work 
+your way up the hierarchy.
+items.forEach(i -> {
+      i.setColor(Color.ALICEBLUE);
+      i.setSize(Size.MEDIUM);
+    });
+
+Abstract Classes
+
+An abstract class cannot be instantiated, but other classes are 
+derived from it.
+ An Abstract class serves as a superclass for other classes.
+ The abstract class represents the generic or abstract form of all 
+the classes that are derived from it.
+ A class becomes abstract when you place the abstract key word in
+the class definition.

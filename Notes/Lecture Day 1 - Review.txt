@@ -1,0 +1,240 @@
+Arrays of Objects
+ Since Strings are objects, we know that arrays can contain objects.
+InventoryItem[] inventory = new InventoryItem[5];
+
+Each element needs to be initialized.
+for (int i = 0; i < inventory.length; i++)
+  inventory[i] = new InventoryItem();
+
+You entered the following:
+Item 1
+Description: Eggs
+Units: 3
+Item 2
+Description: Peppers
+Units: 3
+Item 3
+Exception in thread "main" java.lang.NullPointerException
+at uninitializedObjectArray.UninitializedObjectArray.main(
+UninitializedObjectArray.java:27)
+
+
+Java does not have true 
+multidimensional arrays. 
+They are implemented 
+as arrays of arrays. 
+ For example, here is 
+how you declare and 
+implement a two-
+dimensional array of 
+integers: 
+int[][] square = {
+    { 16, 3, 2, 13 },
+    { 5, 10, 11, 8 },
+    { 9, 6, 7, 12 },
+    { 4, 15, 14, 1}
+}; 
+ Technically, this is a one
+-dimensional array of 
+int[] arrays.
+
+While it is good to be able to use 
+arrays to store objects, this is 
+limiting.
+ Arrays need to be declared with 
+a size, so that memory can be 
+allocated to store an address of 
+each row.
+ But often we don't know how 
+many rows we will have...
+ ... and building super large 
+arrays to give us enough 
+capacity  will consume memory 
+needlessly
+ COLLECTIONS are the answer
+
+To access items in an ArrayList, use the get method
+nameList.get(1); 
+In this statement "1" 
+is the index of the 
+item to get.
+
+public class ArrayListDemo1
+{
+   public static void main(String[] args)
+   {
+      // Create an ArrayList to hold some names.
+      ArrayList nameList = new ArrayList();
+      
+      // Add some names to the ArrayList.
+      nameList.add("James");
+      nameList.add("Catherine");
+      nameList.add("Bill");
+      
+      // Display the size of the ArrayList.
+      System.out.println("The ArrayList has " +
+       nameList.size() + " objects stored in it.");
+
+      // Now display the items in nameList.
+      for (int i= 0; i < nameList.size(); i++)
+         System.out.println(nameList.get(i));
+   }
+}
+
+The ArrayList class's toString method returns a string representing 
+all items in the ArrayList
+
+System.out.println(nameList); 
+This statement yields :
+[ James, Catherine ]
+The ArrayList class's remove method removes designated item from the 
+ArrayList
+nameList.remove(1); 
+This statement removes the second item.
+
+The ArrayList class's add method with one argument adds new items to 
+the end of the ArrayList 
+To insert items at a location of choice, use the add method with two 
+arguments:
+nameList.add(1, "Mary"); 
+This statement inserts the String "Mary" at index 1    
+To replace an existing item, use the set method:
+nameList.set(1, "Becky");  
+This statement replaces “Mary” with “Becky”
+
+Three ways to loop through a collection
+Using lambdas
+For-each
+While
+The first two are simpler when you have to go through the entire 
+collection.
+While is better when you need to exit early
+
+
+notes.forEach(n -> System.out.println(n);
+
+for (String note : notes) {
+   System.out.println(note);
+}
+
+String searchString = "bread";
+boolean found = false;
+int i = 0;
+while (i < notes.size() && !found) {
+   String note = notes.get(i);
+   if (note.contains(searchString)) 
+      found = true;  // ok to exit loop
+   else i++;
+}
+if (found)
+   System.out.printf("%s found at position
+                   %d.\n", searchString, i);
+else
+   System.out.printf("%s not found.\n", searchString);
+
+Linked Lists
+Deleting from an ArrayList, requires all pointers to be shuffled
+For example in a six item list, after deleting item 2
+item[3]  item[2];   item[4]  item[3];   item[5]  item[4]
+Deleting from an LinkedList requires only one change
+Deleting the current position only requires a change to the previous 
+item's pointer.
+Inserting works similarly.	
+
+ArrayLists vs LinkedLists
+ArrayLists provide quick, random access to elements
+As ArrayLists have random access, you can grab any element in 
+constant time. 
+But adding or removing from anywhere but the end requires shifting 
+all the latter elements over, either to make an opening or fill the 
+gap. 
+Also, if you add more elements than the capacity of the underlying 
+array, a new array (twice the size) is allocated
+To avoid the high cost of resizing when you know you're going to add 
+a lot of elements, construct the ArrayList with a higher initial 
+capacity.
+
+LinkedLists provides quick insertions and deletions at positions 
+other than the end. 
+LinkedList allows for constant-time insertions or removals, but only
+sequential access of elements. 
+In other words, you can walk the list forwards or backwards, but 
+grabbing an element in the middle takes time proportional to the size of the list.
+No resizing costs
+Use a LinkedLIst if:
+The application doesn't need random access.
+The application is more insertion and deletion driven and you insert 
+or remove more than retrieve. 
+
+HashSet example
+private void processText(String value) {
+   // Parse the string into words using a RegExp of delimiters
+   String[] tokens = value.split("[\n\t\r (),.:;+]"); 
+   HashSet<String> uniqueWords = new HashSet<>();
+
+    for (String token : tokens) {
+        if (token.length() > 0) {
+        // add returns a boolean.  It will return false if the
+        // token was not added, i.e., it is a duplicate that 
+        // cannot be stored in a Set.
+        if (!uniqueWords.add(token.toLowerCase())) 
+            System.out.println("Duplicate detected : " + token);
+        }
+    }
+    
+    System.out.printf("\nThere are %d unique words found ",
+                        uniqueWords.size());
+    for (String word : uniqueWords) {
+       System.out.print(word + " ");
+    }
+}
+
+TreeSets
+The other concrete Set implementation is the TreeSet. 
+The TreeSet class works exactly the same as the HashSet class 
+with one notable exception: instead of keeping its elements 
+unordered, a TreeSet keeps its elements ordered internally. 
+Not only are the elements ordered, but the tree is balanced. 
+More specifically, it's a "red-black" tree. Having a balanced 
+tree guarantees a quick search time at the cost of a more 
+time-intensive insertion (and deletion).
+
+For now, all you have to know is that there is a special method 
+called compareTo() which helps decide where objects should be 
+inserted.
+The compareTo() method can return one of three values. 
+A negative number if the current object comes before the object 
+compared to. 
+A positive number if the current object comes after the object 
+compared to. 
+Zero if the two objects are equal. 
+Examples
+Comparing "Della" to "Bella" returns positive 2
+"Della".compareTo("Bella")
+Comparing 12/1/2020 to 12/19/2020 returns negative 18
+LocalDate.of(2020, 12, 1).compareTo(LocalDate.of(2020, 12, 19))
+Your classes that you want to store in a TreeMap should implement 
+their own compareTo() method.
+
+public class Book implements Comparable<Book> {
+
+   @Override
+   public int compareTo(Book b) {
+      // Compare alphabetically by title, then by author
+      int compare = this.title.compareTo(b.getTitle());
+      if (compare != 0) {
+         // The books have different String titles
+         return compare;
+      }
+      else {
+         // Let's compare by author
+         compare = this.author.compareTo(b.getAuthor());
+         return compare;
+      }
+   }
+
+
+
+
+
+
